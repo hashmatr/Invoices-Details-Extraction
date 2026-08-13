@@ -153,16 +153,47 @@ if uploaded_file is not None and process_button:
         """, unsafe_allow_html=True)
         st.markdown("---")
         
-        col1, col2, col3 = st.columns(3)
+        def display_field(label, value):
+            st.markdown(f"**{label}**<br/><span style='font-size: 1.25rem; font-weight: 600; color: #1E3A8A; word-wrap: break-word;'>{value}</span>", unsafe_allow_html=True)
+            st.write("") # small padding
+            
+        col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.metric("Invoice Number", invoice.invoice_number.value if invoice.invoice_number else "N/A")
-            st.metric("Invoice Date", str(invoice.invoice_date.value) if invoice.invoice_date else "N/A")
+            display_field("Invoice Number", invoice.invoice_number.value if invoice.invoice_number else "N/A")
+            display_field("Invoice Date", str(invoice.invoice_date.value) if invoice.invoice_date else "N/A")
+            display_field("QR Code Present", "Yes" if invoice.qr_code_present else "No")
         with col2:
-            st.metric("Supplier", invoice.supplier.name.value if invoice.supplier and invoice.supplier.name else "N/A")
-            st.metric("Customer", invoice.customer.name.value if invoice.customer and invoice.customer.name else "N/A")
+            display_field("Supplier", invoice.supplier.name.value if invoice.supplier and invoice.supplier.name else "N/A")
+            display_field("Supplier VAT", invoice.supplier.vat.value if invoice.supplier and invoice.supplier.vat else "N/A")
         with col3:
-            st.metric("Amount Before VAT", f"¥ {invoice.amount_before_vat.value}" if invoice.amount_before_vat else "N/A")
-            st.metric("Total Amount", f"¥ {invoice.total_amount_after_vat.value}" if invoice.total_amount_after_vat else "N/A")
+            display_field("Customer", invoice.customer.name.value if invoice.customer and invoice.customer.name else "N/A")
+            display_field("Customer VAT", invoice.customer.vat.value if invoice.customer and invoice.customer.vat else "N/A")
+        with col4:
+            display_field("Amount Before VAT", f"¥ {invoice.amount_before_vat.value}" if invoice.amount_before_vat else "N/A")
+            display_field("VAT Amount", f"¥ {invoice.vat_amount.value}" if invoice.vat_amount else "N/A")
+            display_field("Total Amount", f"¥ {invoice.total_amount_after_vat.value}" if invoice.total_amount_after_vat else "N/A")
+            
+        if invoice.line_items:
+            st.markdown("""
+                <h4 style="margin-top: 1.5rem; color: #1E3A8A; font-family: 'Inter', sans-serif;">
+                    Line Items
+                </h4>
+            """, unsafe_allow_html=True)
+            
+            table_data = []
+            for idx, item in enumerate(invoice.line_items):
+                table_data.append({
+                    "#": idx + 1,
+                    "Description": item.description.value if item.description else "N/A",
+                    "Quantity": float(item.quantity.value) if item.quantity and item.quantity.value is not None else None,
+                    "Unit": item.unit.value if item.unit and item.unit.value else "",
+                    "Unit Price (¥)": float(item.unit_price.value) if item.unit_price and item.unit_price.value is not None else None,
+                    "VAT Rate (%)": float(item.vat_rate.value) * 100 if item.vat_rate and item.vat_rate.value is not None else None,
+                    "VAT Amount (¥)": float(item.vat_amount.value) if item.vat_amount and item.vat_amount.value is not None else None,
+                    "Total Amount (¥)": float(item.amount.value) if item.amount and item.amount.value is not None else None,
+                    "Validation Formula": item.formula if hasattr(item, 'formula') and item.formula else ""
+                })
+            st.dataframe(table_data, use_container_width=True)
             
     errors = result_state.get("validation_errors", [])
     if errors:

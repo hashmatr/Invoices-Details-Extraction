@@ -26,8 +26,7 @@ class ImageService:
         if options.get("grayscale", False):
             if len(processed.shape) == 3:
                 processed = cv2.cvtColor(processed, cv2.COLOR_BGR2GRAY)
-                # Keep it 3-channel for PaddleOCR consistency if needed, 
-                # or let PaddleOCR handle it internally.
+                # Keep it 3-channel
                 processed = cv2.cvtColor(processed, cv2.COLOR_GRAY2BGR)
                 
         # Other preprocessing like denoise, adaptive thresholding could go here

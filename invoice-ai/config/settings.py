@@ -1,11 +1,5 @@
 import os
 
-# Safety net: Disable PaddlePaddle PIR API and MKLDNN to avoid execution crashes.
-# The primary env var setup is in app.py (the entry point), before any imports.
-os.environ.setdefault("FLAGS_enable_pir_api", "0")
-os.environ.setdefault("FLAGS_use_mkldnn", "0")
-os.environ.setdefault("FLAGS_enable_pir_in_executor", "0")
-
 from dotenv import load_dotenv
 
 env_path = os.path.join(os.path.dirname(__file__), "..", ".env")
